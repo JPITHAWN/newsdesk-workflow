@@ -18,14 +18,14 @@ USER_AGENT = (
 TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 MAX_WORKERS = 10
 REDIRECT = True
-SEEN_FILE = Path(__file__).parent / "seen.txt"
+SEEN_FILE = Path(".newsdesk/seen.txt")
 SEEN_CAP = 5000
 
 
 FEEDS = [
     {"name": "BBC UK",      "url": "https://feeds.bbci.co.uk/news/uk/rss.xml",  "lookback_hours": 24},
     {"name": "Guardian UK", "url": "https://www.theguardian.com/uk-news/rss",   "lookback_hours": 24},
-    {"name": "Rappler PH",  "url": "https://www.rappler.com/philippines/feed/", "lookback_hours": 30},
+    {"name": "Rappler PH",  "url": "https://www.rappler.com/philippines/feed/", "lookback_hours": 24},
 ]
 
 # Functions
@@ -77,6 +77,7 @@ def load_seen() -> list[str]: # loads the seen.txt file
 
 
 def save_seen(seen_list: list[str]) -> None: # saves the seen.txt file
+    SEEN_FILE.parent.mkdir(exist_ok=True)
     SEEN_FILE.write_text("\n".join(seen_list[-SEEN_CAP:]) + "\n", encoding="utf-8")
 
 

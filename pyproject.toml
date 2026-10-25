@@ -1,0 +1,20 @@
+[project]
+name = "newsdesk"
+version = "0.1.0"
+description = "An automated process to fetch news updates, summarise using an AI agent, then send directly to your email. This fetches the existing RSS of news providers using a python script that an AI agent can read, filter based on a criteria, and summarise with a standard format."
+readme = "README.md"
+authors = [
+    { name = "JPITHAWN", email = "234965994+JPITHAWN@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "feedparser>=6.0.14",
+    "httpx>=0.28.1",
+]
+
+[project.scripts]
+newsdesk = "newsdesk:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"

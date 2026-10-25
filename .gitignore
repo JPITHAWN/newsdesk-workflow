@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+
+# Secrets
+.env
+
+# Run data
+.newsdesk/
+
+# Private notes
+NOTES.md
