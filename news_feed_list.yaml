@@ -1,0 +1,14 @@
+# Sample news feed list.
+# In format (name, url, lookback_hours)
+feeds:
+  - name: BBC UK
+    url: https://feeds.bbci.co.uk/news/uk/rss.xml
+    lookback_hours: 24
+
+  - name: Guardian UK
+    url: https://www.theguardian.com/uk-news/rss
+    lookback_hours: 24
+
+  - name: Rappler PH
+    url: https://www.rappler.com/philippines/feed/
+    lookback_hours: 24

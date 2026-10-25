@@ -1,8 +1,8 @@
 
 import httpx # used for fetching the rss data
 import feedparser # used for parsing the data
-
-# used for ensuring loopback window
+import yaml # used for reading the feed list in yaml format
+# used for ensuring lookback window
 import calendar
 from datetime import datetime, timedelta, timezone
 
@@ -21,12 +21,8 @@ REDIRECT = True
 SEEN_FILE = Path(".newsdesk/seen.txt")
 SEEN_CAP = 5000
 
+FEEDS_FILE = Path("news_feed_list.yaml")
 
-FEEDS = [
-    {"name": "BBC UK",      "url": "https://feeds.bbci.co.uk/news/uk/rss.xml",  "lookback_hours": 24},
-    {"name": "Guardian UK", "url": "https://www.theguardian.com/uk-news/rss",   "lookback_hours": 24},
-    {"name": "Rappler PH",  "url": "https://www.rappler.com/philippines/feed/", "lookback_hours": 24},
-]
 
 # Functions
 
@@ -69,12 +65,14 @@ def fetch_rss_feed(client: httpx.Client, feed: dict) -> tuple[list[dict], str | 
 def link_key(link: str) -> str: #converts article url into a base-16 16 character string
     return hashlib.sha256(link.encode()).hexdigest()[:16]
 
+def load_feeds() -> list[dict]: # loads the feed list from YAML
+    data = yaml.safe_load(FEEDS_FILE.read_text(encoding="utf-8"))
+    return data["feeds"]
 
 def load_seen() -> list[str]: # loads the seen.txt file
     if SEEN_FILE.exists():
         return SEEN_FILE.read_text(encoding="utf-8").split()
     return []
-
 
 def save_seen(seen_list: list[str]) -> None: # saves the seen.txt file
     SEEN_FILE.parent.mkdir(exist_ok=True)
@@ -82,6 +80,7 @@ def save_seen(seen_list: list[str]) -> None: # saves the seen.txt file
 
 
 def main() -> None:
+    feeds = load_feeds()
     seen_list = load_seen()
     seen_set = set(seen_list)
     failed = []
@@ -91,11 +90,11 @@ def main() -> None:
         timeout=TIMEOUT,
         follow_redirects=REDIRECT,
     ) as client, ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
-        results = pool.map(lambda feed: fetch_rss_feed(client, feed), FEEDS) # For every feed in feeds, run fetch_rss_feeds
+        results = pool.map(lambda feed: fetch_rss_feed(client, feed), feeds) # For every feed in feeds, run fetch_rss_feeds
 
         # FEEDS has feed
         # results has both articles and error
-        for feed, (articles, error) in zip(FEEDS, results): #zip iterates through two lists at the same time
+        for feed, (articles, error) in zip(feeds, results): #zip iterates through two lists at the same time
             if error: # if error is not empty, print error and continues
                 print(f"[FAILED] {feed['name']}: {error}")
                 failed.append(feed["name"])
@@ -104,7 +103,7 @@ def main() -> None:
             print(f"\n== {feed['name']} ({feed['lookback_hours']}h) ==")
             for article in articles: # for every article in articles
                 key = link_key(article["link"]) # hashes the url as 16 character string
-                if key in seen_set: #if it is in set, do not append in the seen_list
+                if key in seen_set: #if it is in set, it is already in set, skip
                     continue
                 seen_set.add(key)
                 seen_list.append(key)
